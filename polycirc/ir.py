@@ -1,6 +1,7 @@
+import numpy as np
 import operator
 import functools
-from yarrow import Diagram, FiniteFunction
+from yarrow import Diagram, FiniteFunction, IndexedCoproduct
 from polycirc.operation import *
 
 # Initial maps for empty diagrams with no wires/operations
@@ -18,26 +19,44 @@ def twist(m: int, n: int):
     wn = FiniteFunction.terminal(n)
     return Diagram.twist(wm, wn, _xn0)
 
-def cointerleave(n: int):
+def interleave(n: int):
     w = FiniteFunction.terminal(n)
+    # NOTE: cointerleave + dagger = interleave
     return Diagram.half_spider(FiniteFunction.cointerleave(len(w)), w + w, _xn0).dagger()
 
-def blockwise_interleave(n: int, m: int):
-    """ Like cointerleave, but interleave *blocks* of wires, so we have
-    >>> cointerleave(n) == cointerleave_blocks(n, 1)
-    True
-    """
-    raise NotImplementedError("blockwise_interleave")
+def cointerleave(n: int):
+    w = FiniteFunction.terminal(n)
+    # NOTE: interleave + dagger = cointerleave
+    return Diagram.half_spider(FiniteFunction.interleave(len(w)), w + w, _xn0).dagger()
+
+def block_interleave(num_blocks: int, block_size: int):
+    # weave together n blocks each of length m, keeping blocks in order.
+    n = num_blocks
+    m = block_size
+
+    sources = FiniteFunction(m+1, np.full(2*n, m))
+    w = FiniteFunction.terminal(2*n*m)
+    # cointerleave here because it's going to be daggered in the half_spider!
+    f = sources.injections(FiniteFunction.cointerleave(n))
+    return Diagram.half_spider(f, w, _xn0).dagger()
+
+# Given an n×m array, compute the *transpose permutation diagram* which
+def transpose(n: int, m: int):
+    # use numpy to get the permutation (TODO: don't cheat :-)
+    table = np.arange(m*n).reshape(m,n).T.reshape(n*m)
+    f = FiniteFunction(m*n, table)
+    w = FiniteFunction.terminal(m*n)
+    return Diagram.half_spider(f, w, _xn0).dagger()
 
 ################################################################################
 # pointwise operations
 
 def pointwise(op, n: int) -> Diagram:
     if n == 0:
-        return Diagram.empty(_xn0, _wn0)
+        return empty
     
     d = op.diagram()
-    i = cointerleave(n)
+    i = interleave(n)
     f = Diagram.tensor_list([ d for _ in range(0, n)])
     return i >> f
 
@@ -113,8 +132,22 @@ def fanout(n: int):
 ################################################################################
 # Combined reduce/pointwise operations
 
-def pointwise_fanout():
-    raise NotImplementedError("pointwise_fanout")
+def pointwise_fanout(block_size: int, copies: int):
+    """ Copy a vector of n inputs into m vectors of size n.
+    >>> pointwise_fanout(n=3, copies=2).diagram().to_function("f")(1, 2, 3) == [1, 2, 3, 1, 2, 3]
+    True
+    """
+    # fanout for a single wire
+    fan = fanout(copies)
+
+    # tensor fan for each wire
+    if block_size == 0:
+        fans = empty
+    else:
+        fans = Diagram.tensor_list([fan]*block_size)
+
+    # interleave outputs
+    return fans >> transpose(copies, block_size)
 
 ################################################################################
 # Linear algebra
@@ -123,6 +156,15 @@ def pointwise_fanout():
 def dot(n: int):
     return mul(n) >> sum(n)
 
-# Matrix-Vector product of a matrix (m*n wires) with a vector (n wires)
-def mat_mul(m: int, n: int):
-    raise NotImplementedError("mat_mul")
+# Matrix-Vector product of an n×m matrix (n×m wires) with a m-dimensional vector
+def mat_mul(n: int, m: int):
+    d = dot(m)
+
+    # n dot products in parallel.
+    dots = Diagram.tensor_list([d] * n) if n > 0 else empty
+
+    lhs = identity(n * m) @ pointwise_fanout(block_size=m, copies=n)
+    mid = block_interleave(num_blocks=n, block_size=m)
+    rhs = dots
+
+    return lhs >> mid >> rhs
