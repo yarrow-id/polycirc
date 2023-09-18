@@ -1,5 +1,5 @@
 import ast
-from polycirc.ast import Name, Assignment, Constant, BinOp, Add, Mul, Sub, Eq, FunctionDefinition
+from polycirc.ast import Name, Assignment, Constant, BinOp, Add, Mul, Sub, Eq, FunctionDefinition, diagram_to_ast
 
 from hypothesis import given
 from hypothesis import strategies as st
@@ -40,15 +40,25 @@ def make_fn_test_ast(function_name: str):
 
 # Compile the AST above to executable python code
 FUNCTION_NAME = 'fn_test'
-fn_ast = ast.parse(str(make_fn_test_ast(FUNCTION_NAME)))
-state = {}
-exec(compile(fn_ast, filename='<string>', mode='exec'), state)
-fn_test_compiled = state['fn_test']
+fn_test_compiled = make_fn_test_ast(FUNCTION_NAME).to_function()
 
 ################################################################################
 # Test that fn_test and fn_test_compiled compute the same values
 
 values = st.integers(min_value=0, max_value=1000)
+
 @given(a=values, b=values)
 def test_add_sub(a, b):
     assert fn_test(a, b) == fn_test_compiled(a, b)
+
+mul_compiled = diagram_to_ast(Mul().diagram(), 'mul_compiled').to_function()
+
+@given(a=values, b=values)
+def test_diagram_to_ast(a, b):
+    assert mul_compiled(a, b) == a * b
+
+# TODO: test n-ary operations, e.g.:
+# sum_compiled = diagram_to_ast(diagrams.sum(3), 'sum_compiled').to_function()
+# @given(a=values, b=values, c=values)
+# def test_diagram_to_ast(a, b):
+    # assert sum_compiled(a, b, c) == a+b+c

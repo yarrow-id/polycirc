@@ -4,6 +4,10 @@
 from typing import List
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+import ast # python's AST module
+
+from polycirc.operation import *
+from polycirc.decompose import acyclic_decompose_operations, SingletonOp
 
 ################################################################################
 
@@ -28,36 +32,10 @@ class Constant:
     def __str__(self):
         return f"{self.value}"
 
-################################################################################
-# Binary operators +, -, *
-
-class Operator(ABC):
-    pass
-
-class Add(Operator):
-    def __str__(self):
-        return "+"
-
-class Sub(Operator):
-    def __str__(self):
-        return "-"
-
-class Mul(Operator):
-    def __str__(self):
-        return "*"
-
-class Shr(Operator):
-    def __str__(self):
-        return ">>"
-
-class Eq(Operator):
-    def __str__(self):
-        return "=="
-
 @dataclass
 class BinOp:
     lhs: Name | Constant
-    op: Operator
+    op: Operation
     rhs: Name | Constant
 
     def __str__(self):
@@ -105,3 +83,58 @@ class FunctionDefinition(ASTNode):
         returns = indent + "return " + ", ".join(str(r) for r in self.returns)
 
         return f"{top_line}\n{body_lines}\n{returns}\n"
+
+    def to_function(self, filename="<string>"):
+        """ Use python's 'compile' to turn this AST into a python function """
+        fn_ast = ast.parse(str(self))
+        env = {}
+        exec(compile(fn_ast, filename=filename, mode="exec"), env)
+        return env[self.function_name]
+
+################################################################################
+# Converting diagrams to ASTs
+
+def make_name(i: int):
+    return Name(f"x{i}")
+
+# Convert an Operation to a list of Assignment
+def op_to_assignments(op: Operation, args, coargs) -> List[Assignment]:
+    arity = op.type[0]
+    coarity = op.type[1]
+    if len(args) != arity:
+        raise ValueError("Operation {op} has arity {arity} but had {len(args)} args")
+    if len(coargs) != coarity:
+        raise ValueError("Operation {op} has coarity {coarity} but had {len(coargs)} coargs")
+
+    args = list(map(make_name, args))
+    coargs = list(map(make_name, coargs))
+
+    # Most ops become BinOps, but there are some special cases (TODO!)
+    match type(op):
+        # case Copy:
+            # pass
+
+        # case Discard:
+            # pass
+
+        # case Negate:
+            # pass
+
+        # default case is a 2 → 1 binop
+        case binop:
+            return [Assignment(coargs[0], BinOp(args[0], op, args[1]))]
+
+def diagram_to_ast(d: Diagram, function_name: str) -> FunctionDefinition:
+    # List[SingletonOp]
+    ops = list(acyclic_decompose_operations(d))
+
+    args = [make_name(i) for i in d.s.table]
+    body = [ a for s in ops for a in op_to_assignments(s.op, s.args, s.coargs) ]
+    returns = [make_name(i) for i in d.t.table]
+
+    return FunctionDefinition(
+        function_name=function_name,
+        args=args,
+        body=body,
+        returns=returns,
+    )
