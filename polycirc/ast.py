@@ -7,6 +7,7 @@ from dataclasses import dataclass
 import ast # python's AST module
 
 from polycirc.operation import *
+import polycirc.operation as operation
 from polycirc.decompose import acyclic_decompose_operations, SingletonOp
 
 ################################################################################
@@ -21,16 +22,6 @@ class Name:
 
     def __str__(self):
         return self.id
-
-################################################################################
-# All constants are values of the underlying field, which we store in an
-# arbitrary-precision int.
-@dataclass
-class Constant:
-    value: int
-
-    def __str__(self):
-        return f"{self.value}"
 
 @dataclass
 class BinOp:
@@ -51,7 +42,7 @@ class BinOp:
 # Recursion is not allowed: if you want to have something like (x + (y + z))
 # you need to explicitly create the intermediate variables.
 class Expr:
-    value: BinOp | Constant
+    value: Name | BinOp | Constant
 
     def __str__(self):
         return f"{self.value}"
@@ -80,7 +71,7 @@ class FunctionDefinition(ASTNode):
         args_list = ", ".join(str(a) for a in self.args)
         top_line = f"def {self.function_name}({args_list}):"
         body_lines = "\n".join(indent + str(a) for a in self.body)
-        returns = indent + "return " + ", ".join(str(r) for r in self.returns)
+        returns = indent + "return [" + ", ".join(str(r) for r in self.returns) + "]"
 
         return f"{top_line}\n{body_lines}\n{returns}\n"
 
@@ -106,17 +97,28 @@ def op_to_assignments(op: Operation, args, coargs) -> List[Assignment]:
     if len(coargs) != coarity:
         raise ValueError("Operation {op} has coarity {coarity} but had {len(coargs)} coargs")
 
+    # convert to names like x0, x1, etc.
     args = list(map(make_name, args))
     coargs = list(map(make_name, coargs))
 
-    # Most ops become BinOps, but there are some special cases (TODO!)
+    # Most ops become BinOps, but there are some special cases (copying,
+    # discarding and unary ops)
     match type(op):
-        # case Copy:
-            # pass
+        case operation.Copy:
+            return [
+                Assignment(coargs[0], args[0]),
+                Assignment(coargs[1], args[0]),
+            ]
 
-        # case Discard:
-            # pass
+        case operation.Constant:
+            return [
+                Assignment(coargs[0], op.value)
+            ]
 
+        case operation.Discard:
+            return []
+
+        # TODO
         # case Negate:
             # pass
 

@@ -1,5 +1,5 @@
 import ast
-from polycirc.ast import Name, Assignment, Constant, BinOp, Add, Mul, Sub, Eq, FunctionDefinition, diagram_to_ast
+from polycirc.ast import Name, Assignment, Constant, BinOp, Add, Copy, Mul, Sub, Eq, FunctionDefinition, diagram_to_ast
 
 from hypothesis import given
 from hypothesis import strategies as st
@@ -17,7 +17,7 @@ def fn_test(x0, x1):
     x3 = int(x1 == x0)
     x4 = x0 * 314 # test binops with constants
     x5 = 0 # test bare constants
-    return x3, x2, x4, x5
+    return [x3, x2, x4, x5]
 
 # Express the same function as an AST
 def make_fn_test_ast(function_name: str):
@@ -55,10 +55,17 @@ mul_compiled = diagram_to_ast(Mul().diagram(), 'mul_compiled').to_function()
 
 @given(a=values, b=values)
 def test_diagram_to_ast(a, b):
-    assert mul_compiled(a, b) == a * b
+    assert mul_compiled(a, b) == [a * b]
 
-# TODO: test n-ary operations, e.g.:
-# sum_compiled = diagram_to_ast(diagrams.sum(3), 'sum_compiled').to_function()
-# @given(a=values, b=values, c=values)
-# def test_diagram_to_ast(a, b):
-    # assert sum_compiled(a, b, c) == a+b+c
+################################################################################
+# Test copying and non-binary operations
+
+copy_compiled = diagram_to_ast(Copy().diagram(), 'copy_compiled').to_function()
+@given(a=values)
+def test_copy(a):
+    assert copy_compiled(a) == [a, a]
+
+@given(a=values)
+def test_constant(a):
+    constant_compiled = diagram_to_ast(Constant(a).diagram(), 'constant').to_function()
+    assert constant_compiled() == [a]
