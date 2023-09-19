@@ -59,4 +59,4 @@ def test_mul_rev(x0, x1, dy):
 @given(x0=values, x1=values)
 def test_mul_fwd(x0, x1):
     mul_fwd_compiled = diagram_to_ast(Mul().fwd(), 'mul_fwd').to_function()
-    assert mul_fwd_compiled(x0, x1) == [x*y, x, y]
+    assert mul_fwd_compiled(x0, x1) == [x0*x1, x0, x1]
