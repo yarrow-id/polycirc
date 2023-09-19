@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 from yarrow import FiniteFunction, Diagram
 
-from polycirc.permutation import identity, twist, interleave
+from polycirc.permutation import identity, twist, interleave, cointerleave
 
 class Operation(ABC):
     # The type of an operation f : A → B
@@ -137,6 +137,13 @@ class Mul(Operation):
 
     def residual(self):
         return self.source
+
+    def fwd(self):
+        # We haven't defined the ir copy map yet, so we have to build it
+        # manually
+        copy1 = Copy().diagram()
+        copy2 = (copy1 @ copy1) >> cointerleave(2)
+        return copy2 >> (self.diagram() @ identity(2))
 
     def rev(self):
         mul0    = Mul().diagram()

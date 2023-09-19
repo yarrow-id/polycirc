@@ -54,3 +54,9 @@ values = st.integers(min_value=0, max_value=100)
 def test_mul_rev(x0, x1, dy):
     mul_rev_compiled = diagram_to_ast(Mul().rev(), 'mul_rev').to_function()
     assert mul_rev_compiled(x0, x1, dy) == mul_rev(x0, x1, dy)
+
+# multiply's forward map is the *lens* forward map, so mul(x,y) produces [x*y, x, y]
+@given(x0=values, x1=values)
+def test_mul_fwd(x0, x1):
+    mul_fwd_compiled = diagram_to_ast(Mul().fwd(), 'mul_fwd').to_function()
+    assert mul_fwd_compiled(x0, x1) == [x*y, x, y]
