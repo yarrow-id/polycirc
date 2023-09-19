@@ -162,6 +162,11 @@ class Shr(LinearOperation):
     def dagger(self):
         return Copy().diagram()
 
+################################################################################
+# Equality and Comparison operations
+# NOTE: All equality/comparison operations use the straight-through estimator,
+# for each operation R[op] = Δ
+
 class Eq(LinearOperation):
     @property
     def type(self):
@@ -170,7 +175,49 @@ class Eq(LinearOperation):
     def __str__(self):
         return "=="
 
-    # NOTE: equality uses the straight-through estimator, but there are other
-    # choices!
+    def dagger(self):
+        return Copy().diagram()
+
+class Gt(LinearOperation):
+    @property
+    def type(self):
+        return (2, 1)
+
+    def __str__(self):
+        return ">"
+
+    def dagger(self):
+        return Copy().diagram()
+
+class Geq(LinearOperation):
+    @property
+    def type(self):
+        return (2, 1)
+
+    def __str__(self):
+        return ">="
+
+    def dagger(self):
+        return Copy().diagram()
+
+class Lt(LinearOperation):
+    @property
+    def type(self):
+        return (2, 1)
+
+    def __str__(self):
+        return "<"
+
+    def dagger(self):
+        return Copy().diagram()
+
+class Leq(LinearOperation):
+    @property
+    def type(self):
+        return (2, 1)
+
+    def __str__(self):
+        return "<="
+
     def dagger(self):
         return Copy().diagram()

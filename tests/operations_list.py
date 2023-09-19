@@ -5,11 +5,15 @@ ALL_OPERATIONS = [
     Sub(),
     Mul(),
     Shr(),
-    Eq(),
     Copy(),
     Discard(),
     Constant(0),
     Constant(1),
     Negate(),
+    Eq(),
+    Gt(),
+    Lt(),
+    Geq(),
+    Leq(),
 ]
 

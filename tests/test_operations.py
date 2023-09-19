@@ -25,6 +25,13 @@ def test_operation_to_diagram(op: Operation):
     assert len(d.G.xn) == 1
 
 @pytest.mark.parametrize("op", ALL_OPERATIONS)
+def test_compile_operation(op: Operation):
+    args = list(range(0, op.type[0]))
+
+    fn = diagram_to_ast(op.diagram(), op.__class__.__name__).to_function()
+    assert len(fn(*args)) == op.type[1]
+
+@pytest.mark.parametrize("op", ALL_OPERATIONS)
 def test_revs(op: Operation):
     d_fwd = op.diagram()
     d_rev = op.rev()
@@ -34,10 +41,15 @@ def test_revs(op: Operation):
     print(op)
     assert d_rev.type == (M + B, A)
 
+################################################################################
+# Test that compiled operation functions do what they're supposed to.
+
+# R[mul] as a function
 def mul_rev(x0, x1, dy):
     return [x1*dy, x0*dy]
 
 values = st.integers(min_value=0, max_value=100)
+
 @given(x0=values, x1=values, dy=values)
 def test_mul_rev(x0, x1, dy):
     mul_rev_compiled = diagram_to_ast(Mul().rev(), 'mul_rev').to_function()

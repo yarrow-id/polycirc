@@ -54,10 +54,11 @@ def test_interleave(n: int):
 
     assert i(*xs, *ys) == rs
 
+# TODO FIXME: this always returns 2n blocks, when it should return n.
 @st.composite
-def blocks(draw):
-    block_size = draw(st.integers(min_value=0, max_value=10))
-    num_blocks = draw(st.integers(min_value=0, max_value=10))
+def blocks(draw, num_blocks=None, block_size=None):
+    block_size = block_size or draw(st.integers(min_value=0, max_value=10))
+    num_blocks = num_blocks or draw(st.integers(min_value=0, max_value=10))
 
     # note: have to return block_size because when the result list is length 0, it's ambiguous.
     value_lists = st.lists(values, min_size=block_size, max_size=block_size)
@@ -128,7 +129,7 @@ def test_pointwise_add_symbolic(n: int):
     assert fun(*xs, *ys) == rs
 
 def test_identity_empty():
-    lhs = ir.identity(0) 
+    lhs = ir.identity(0)
     rhs = ir.empty
     assert lhs == rhs
 
@@ -189,3 +190,40 @@ def test_mat_mul(mv):
     actual = fun(*M.reshape(m*n), *v)
     expected = M @ v
     assert np.all(actual == expected)
+
+@given(x=st.integers(), y=st.integers())
+def test_min(x: int, y: int):
+    fn = diagram_to_ast(ir.min(), 'min').to_function()
+    assert fn(x, y) == [min(x ,y)]
+
+@given(x=st.integers(), y=st.integers())
+def test_max(x: int, y: int):
+    fn = diagram_to_ast(ir.max(), 'max').to_function()
+    assert fn(x, y) == [max(x ,y)]
+
+# test pointwise versions of min/max
+@given(bs=blocks(num_blocks=1))
+def test_minimum(bs):
+    n, _, [x, y] = bs
+
+    fn = diagram_to_ast(ir.minimum(n), 'minimum').to_function()
+    assert np.all(fn(*x, *y) == np.minimum(x, y))
+
+@given(bs=blocks(num_blocks=1))
+def test_maximum(bs):
+    n, _, [x, y] = bs
+
+    fn = diagram_to_ast(ir.maximum(n), 'maximum').to_function()
+    assert np.all(fn(*x, *y) == np.maximum(x, y))
+
+@given(low=values, high=values, x=values)
+def test_clip1(low, high, x):
+    fn = diagram_to_ast(ir.clip1(low, high), 'clip1').to_function()
+    assert fn(x) == np.clip(x, low, high)
+
+# test pointwise clip
+@given(low=values, high=values, x=arrays)
+def test_clip(low, high, x):
+    n = len(x)
+    fn = diagram_to_ast(ir.clip(low, high, n), 'clip').to_function()
+    assert np.all(fn(*x) == np.clip(x, low, high))

@@ -8,27 +8,34 @@ from polycirc.operation import *
 ################################################################################
 # pointwise operations
 
-def pointwise(op, n: int) -> Diagram:
+# op : 2 → 1
+def pointwise(op: Diagram, n: int) -> Diagram:
     if n == 0:
         return empty
+
+    op_type = len(op.type[0]), len(op.type[1])
+    if op_type != (2, 1):
+        raise ValueError(f"pointwise: op must have type 2 → 1 but was {op_type}")
     
-    d = op.diagram()
     i = interleave(n)
-    f = Diagram.tensor_list([ d for _ in range(0, n)])
+    f = Diagram.tensor_list([ op for _ in range(0, n)])
     return i >> f
 
 # add : n × n → n
 def add(n: int) -> Diagram:
-    return pointwise(Add(), n)
+    return pointwise(Add().diagram(), n)
 
 def sub(n: int) -> Diagram:
-    return pointwise(Sub(), n)
+    return pointwise(Sub().diagram(), n)
 
 def mul(n: int) -> Diagram:
-    return pointwise(Mul(), n)
+    return pointwise(Mul().diagram(), n)
 
 def shr(n: int) -> Diagram:
-    return pointwise(Shr(), n)
+    return pointwise(Shr().diagram(), n)
+
+def copy(n: int) -> Diagram:
+    return pointwise_fanout(block_size=n, copies=2)
 
 ################################################################################
 # Reductions
@@ -125,3 +132,49 @@ def mat_mul(n: int, m: int):
     rhs = dots
 
     return lhs >> mid >> rhs
+
+################################################################################
+# Comparisons, etc.
+
+# Computes (x ● y) · x
+# for some diagram ● : 2 → 1
+def f_mul_l(op):
+    return (copy(1) @ identity(1)) >> (identity(1) @ op) >> mul(1)
+
+# computes (x ● y) · y
+# for some binop ●
+def f_mul_r(op):
+    return (identity(1) @ copy(1)) >> (op @ identity(1)) >> mul(1)
+
+# Diagram computing min(x,y) = (x <= y)·x + (x > y)·y
+# for a single input so min1 : 1 → 1
+def min():
+    lop = Leq().diagram()
+    rop = Gt().diagram()
+    return copy(2) >> (f_mul_l(lop) @ f_mul_r(rop)) >> add(1)
+
+def max():
+    lop = Gt().diagram()
+    rop = Leq().diagram()
+    return copy(2) >> (f_mul_l(lop) @ f_mul_r(rop)) >> add(1)
+
+# pointwise min
+def minimum(n: int):
+    return pointwise(min(), n)
+
+# pointwise max
+def maximum(n: int):
+    return pointwise(max(), n)
+
+# clip a value to [low, high]
+def clip1(low: int, high: int):
+    lo = Constant(low).diagram()
+    hi = Constant(high).diagram()
+    return (lo @ identity(1)) >> max() >> (hi @ identity(1)) >> min()
+
+# clip n values to [low, high]
+def clip(low: int, high: int, n: int):
+    c = clip1(low, high)
+    if n == 0:
+        return empty
+    return Diagram.tensor_list([c]*n)
