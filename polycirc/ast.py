@@ -24,6 +24,14 @@ class Name:
         return self.id
 
 @dataclass
+class UnaryOp:
+    op: Operation
+    rhs: Name | Constant
+
+    def __str__(self):
+        return f"{self.op} ({self.rhs})"
+
+@dataclass
 class BinOp:
     lhs: Name | Constant
     op: Operation
@@ -42,7 +50,7 @@ class BinOp:
 # Recursion is not allowed: if you want to have something like (x + (y + z))
 # you need to explicitly create the intermediate variables.
 class Expr:
-    value: Name | BinOp | Constant
+    value: Name | BinOp | UnaryOp | Constant
 
     def __str__(self):
         return f"{self.value}"
@@ -118,9 +126,8 @@ def op_to_assignments(op: Operation, args, coargs) -> List[Assignment]:
         case operation.Discard:
             return []
 
-        # TODO
-        # case Negate:
-            # pass
+        case operation.Negate:
+            return [Assignment(coargs[0], UnaryOp(op, args[0]))]
 
         # default case is a 2 → 1 binop
         case binop:
