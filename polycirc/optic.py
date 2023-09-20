@@ -6,7 +6,7 @@ from yarrow import *
 from yarrow.functor.functor import *
 from yarrow.functor.optic import *
 
-from polycirc.permutation import _xn0
+from polycirc.permutation import _wn0, _xn0, empty
 
 class Optic(FrobeniusOpticFunctor):
     """ Implement an optic functor by using yarrow's FrobeniusOpticFunctor helper """
@@ -24,14 +24,16 @@ class Optic(FrobeniusOpticFunctor):
 
     def map_fwd_operations(self, ops: Operations):
         # we need to return the tensoring of operations, with Bfwd/M uninterleaved.
-        fwds = (op.fwd() for op, _, _  in ops)
-        fwds, coarities = zip(*( (f, len(f.type[1])) for f in fwds), strict=True)
-        return Diagram.tensor_list(fwds), FiniteFunction(None, coarities)
+        fwds = [op.fwd() for op, _, _  in ops]
+        coarities = [len(f.type[1]) for f in fwds]
+        d = Diagram.tensor_list(fwds) if len(fwds) > 0 else empty
+        return d, FiniteFunction(None, coarities)
 
     def map_rev_operations(self, ops: Operations) -> Diagram:
-        revs = (op.rev() for op, _, _ in ops)
-        revs, arities = zip(*( (r, len(r.type[0])) for r in revs), strict=True)
-        return Diagram.tensor_list(revs), FiniteFunction(None, arities)
+        revs = [op.rev() for op, _, _ in ops]
+        arities = [len(r.type[0]) for r in revs]
+        d = Diagram.tensor_list(revs) if len(revs) > 0 else empty
+        return d, FiniteFunction(None, arities)
 
 def make_optic(fwd: Diagram, rev: Diagram, residual):
     """ Make an optic from:
@@ -99,7 +101,7 @@ def adapt_optic(optic: Diagram):
     N_t = N_t // 2
 
     s = FiniteFunction.interleave(N_s) >> optic.s
-    t = FiniteFunction.cointerleave(N_t) >> optic.t
+    t = FiniteFunction.interleave(N_t) >> optic.t
 
     s_ = (FiniteFunction.inj0(N_s, N_s) >> s) + (FiniteFunction.inj1(N_t, N_t) >> t)
     t_ = (FiniteFunction.inj0(N_t, N_t) >> t) + (FiniteFunction.inj1(N_s, N_s) >> s)

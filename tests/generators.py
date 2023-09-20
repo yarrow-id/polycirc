@@ -1,3 +1,5 @@
+import numpy as np
+
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -21,3 +23,14 @@ def blocks(draw, num_blocks=None, block_size=None, map_num_blocks=None):
     value_lists = st.lists(values, min_size=block_size, max_size=block_size)
     return block_size, [ draw(value_lists) for _ in range(0, num_blocks) ]
 
+
+# Draw a random matrix M and vector v of compatible dimensions for computing M @ v.
+@st.composite
+def mat_vec(draw):
+    m = draw(st.integers(min_value=0, max_value=10))
+    n = draw(st.integers(min_value=0, max_value=10))
+
+    M = np.random.randint(0, MAX_VALUE, (n, m))
+    v = np.random.randint(0, MAX_VALUE, m)
+
+    return M, v

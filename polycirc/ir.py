@@ -34,6 +34,14 @@ def mul(n: int) -> Diagram:
 def shr(n: int) -> Diagram:
     return pointwise(Shr().diagram(), n)
 
+def negate(n: int) -> Diagram:
+    if n < 0:
+        raise ValueError("undefined for n < 0")
+    elif n == 0:
+        return empty
+    else:
+        return Diagram.tensor_list([Negate().diagram()]*n)
+
 def copy(n: int) -> Diagram:
     return pointwise_fanout(block_size=n, copies=2)
 

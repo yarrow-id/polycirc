@@ -8,7 +8,7 @@ from yarrow import Diagram
 import polycirc.ir as ir
 from polycirc.ast import diagram_to_ast
 
-from tests.generators import blocks, values, arrays, MAX_VALUE
+from tests.generators import MAX_VALUE, values, arrays, blocks, mat_vec
 
 ################################################################################
 # Basic diagrams
@@ -156,16 +156,6 @@ def test_pointwise_fanout(xs, copies: int):
     actual   = pf(*xs)
 
     assert actual == expected
-
-@st.composite
-def mat_vec(draw):
-    m = draw(st.integers(min_value=0, max_value=10))
-    n = draw(st.integers(min_value=0, max_value=10))
-
-    M = np.random.randint(0, MAX_VALUE, (n, m))
-    v = np.random.randint(0, MAX_VALUE, m)
-
-    return M, v
 
 @given(mv=mat_vec())
 def test_mat_mul(mv):
