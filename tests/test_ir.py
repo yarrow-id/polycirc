@@ -71,8 +71,14 @@ def test_transpose(n: int, m: int):
 ################################################################################
 # Pointwise diagrams
 
-@given(n=values)
-def test_pointwise_add(n):
+@given(bs=blocks(num_blocks=2))
+def test_pointwise_add(bs):
+    _, [x, y] = bs
+    x = np.array(x, int)
+    y = np.array(y, int)
+    z = x + y
+
+    n = len(x)
     d = ir.add(n)
     assert len(d.type[0]) == 2*n
     assert len(d.type[1]) == n
@@ -80,10 +86,7 @@ def test_pointwise_add(n):
     fun = diagram_to_ast(d, 'fun').to_function()
 
     # test that executing the function corresponding to the diagram gives the expected result
-    xs = [1] * n
-    ys = [2] * n
-    rs = [3] * n
-    assert fun(*xs, *ys) == rs
+    assert np.all(fun(*x, *y) == z)
 
 # Same test for add, but using shr instead.
 @given(n=values)
