@@ -26,11 +26,18 @@ def blocks(draw, num_blocks=None, block_size=None, map_num_blocks=None):
 
 # Draw a random matrix M and vector v of compatible dimensions for computing M @ v.
 @st.composite
-def mat_vec(draw):
-    m = draw(st.integers(min_value=0, max_value=10))
-    n = draw(st.integers(min_value=0, max_value=10))
+def mat_vec(draw, max_dimension=10):
+    m = draw(st.integers(min_value=0, max_value=max_dimension))
+    n = draw(st.integers(min_value=0, max_value=max_dimension))
 
     M = np.random.randint(0, MAX_VALUE, (n, m))
     v = np.random.randint(0, MAX_VALUE, m)
 
     return M, v
+
+# mat_vec plus gradients.
+@st.composite
+def mat_vec_gradients(draw):
+    M, x = draw(mat_vec(max_dimension=5))
+    dy = np.random.randint(0, MAX_VALUE, M.shape[0])
+    return M, x, dy
