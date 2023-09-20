@@ -8,14 +8,7 @@ from yarrow import Diagram
 import polycirc.ir as ir
 from polycirc.ast import diagram_to_ast
 
-################################################################################
-# Generators
-
-MAX_VALUE = 100
-MAX_ARRAY_SIZE = 100
-
-values = st.integers(min_value=0, max_value=MAX_VALUE)
-arrays = st.lists(values, max_size=MAX_ARRAY_SIZE)
+from tests.generators import blocks, values, arrays, MAX_VALUE
 
 ################################################################################
 # Basic diagrams
@@ -54,27 +47,19 @@ def test_interleave(n: int):
 
     assert i(*xs, *ys) == rs
 
-# TODO FIXME: this always returns 2n blocks, when it should return n.
-@st.composite
-def blocks(draw, num_blocks=None, block_size=None):
-    block_size = block_size or draw(st.integers(min_value=0, max_value=10))
-    num_blocks = num_blocks or draw(st.integers(min_value=0, max_value=10))
+# @given(nbs=blocks(map_num_blocks=lambda n: n*2))
+# def test_block_interleave(nbs):
+def test_block_interleave():
+    nbs = (0, [[], []])
+    block_size, blocks = nbs
+    n = len(blocks) // 2
 
-    # note: have to return block_size because when the result list is length 0, it's ambiguous.
-    value_lists = st.lists(values, min_size=block_size, max_size=block_size)
-    return block_size, num_blocks, [ draw(value_lists) for _ in range(0, 2*num_blocks) ]
-
-@given(nbs=blocks())
-def test_block_interleave(nbs):
-    block_size, num_blocks, blocks = nbs
-
-    i = diagram_to_ast(ir.block_interleave(num_blocks, block_size), 'block_interleave').to_function()
+    i = diagram_to_ast(ir.block_interleave(num_blocks=n, block_size=block_size), 'block_interleave').to_function()
     x = np.array(blocks)
 
-    result = i(*x.reshape(block_size*num_blocks*2))
+    result = i(*x.reshape(block_size*n))
+    expected = [ j for i in range(0, n) for j in blocks[i] + blocks[i+(n)] ]
 
-    n = num_blocks
-    expected = [ j for i in range(0, n) for j in blocks[i] + blocks[i+n] ]
     assert result == expected
 
 @given(n=st.integers(min_value=0, max_value=10), m=st.integers(min_value=0, max_value=10))
@@ -202,16 +187,16 @@ def test_max(x: int, y: int):
     assert fn(x, y) == [max(x ,y)]
 
 # test pointwise versions of min/max
-@given(bs=blocks(num_blocks=1))
+@given(bs=blocks(num_blocks=2))
 def test_minimum(bs):
-    n, _, [x, y] = bs
+    n, [x, y] = bs
 
     fn = diagram_to_ast(ir.minimum(n), 'minimum').to_function()
     assert np.all(fn(*x, *y) == np.minimum(x, y))
 
-@given(bs=blocks(num_blocks=1))
+@given(bs=blocks(num_blocks=2))
 def test_maximum(bs):
-    n, _, [x, y] = bs
+    n, [x, y] = bs
 
     fn = diagram_to_ast(ir.maximum(n), 'maximum').to_function()
     assert np.all(fn(*x, *y) == np.maximum(x, y))
