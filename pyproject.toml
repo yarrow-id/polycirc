@@ -1,0 +1,42 @@
+[project]
+name = "yarrow-polycirc"
+version = "0.0.0.1"
+authors = [
+  { name="Paul Wilson", email="paul@statusfailed.com" }
+]
+description = "Differentiable IR for Zero-Knowledge Machine Learning"
+readme = "README.md"
+requires-python = ">= 3.8"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: GNU Affero General Public License v3",
+]
+dependencies = [
+  "yarrow-diagrams==0.0.3.1",
+  "numpy~=1.21",
+]
+
+[project.optional-dependencies]
+dev = [
+  "hypothesis",
+  "pytest",
+]
+example = [
+  "pandas",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/yarrow/polycirc"
+"Github" = "https://github.com/yarrow/polycirc"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+packages = ["polycirc"]
+
+[tool.pytest.ini_options]
+testpaths = [
+  "tests"
+]
