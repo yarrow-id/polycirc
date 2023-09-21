@@ -26,8 +26,8 @@ example = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/yarrow/polycirc"
-"Github" = "https://github.com/yarrow/polycirc"
+"Homepage" = "https://github.com/yarrow-id/polycirc"
+"Github" = "https://github.com/yarrow-id/polycirc"
 
 [build-system]
 requires = ["hatchling"]
