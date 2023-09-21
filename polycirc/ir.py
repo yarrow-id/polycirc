@@ -5,8 +5,13 @@ from yarrow import Diagram, FiniteFunction
 from polycirc.permutation import *
 from polycirc.operation import *
 
+# An object in the category polycirc, represented explicitly in the form
+# required by yarrow-diagrams.
+def obj(n: int):
+    return FiniteFunction.terminal(n)
+
 ################################################################################
-# pointwise operations
+# Combinators
 
 # op : 2 → 1
 def pointwise(op: Diagram, n: int) -> Diagram:
@@ -20,6 +25,25 @@ def pointwise(op: Diagram, n: int) -> Diagram:
     i = interleave(n)
     f = Diagram.tensor_list([ op for _ in range(0, n)])
     return i >> f
+
+def repeated(f: Diagram, n: int) -> Diagram:
+    if n < 0:
+        raise ValueError("undefined for n < 0")
+    elif n == 0:
+        return empty
+    return Diagram.tensor_list([f] * n)
+
+def binopc(f: Diagram, c: int):
+    n = len(f.type[1])
+    arity = len(f.type[0])
+    if arity != 2*n:
+        raise ValueError(f"binopc requires a diagram of type n+n → n but got {arity} → {coarity}")
+
+    const = Constant(c).diagram() >> fanout(n)
+    return (identity(n) @ const) >> f
+
+################################################################################
+# 2-ary operations extended to various n-ary operations
 
 # add : n × n → n
 def add(n: int) -> Diagram:
@@ -35,15 +59,26 @@ def shr(n: int) -> Diagram:
     return pointwise(Shr().diagram(), n)
 
 def negate(n: int) -> Diagram:
-    if n < 0:
-        raise ValueError("undefined for n < 0")
-    elif n == 0:
-        return empty
-    else:
-        return Diagram.tensor_list([Negate().diagram()]*n)
+    return repeated(Negate().diagram(), n)
 
+# NOTE: we define copy in terms of the more general 'pointwise_fanout' to avoid
+# repeating code.
 def copy(n: int) -> Diagram:
     return pointwise_fanout(block_size=n, copies=2)
+
+################################################################################
+# Binary operations with constants
+
+def addc(c: int, n: int):
+    return binopc(add(n), c)
+
+# pointwise shift right by a constant
+def shrc(c: int, n: int):
+    return binopc(shr(n), c)
+
+# scale a vector by a constant
+def scale(c: int, n: int):
+    return binopc(mul(n), c)
 
 ################################################################################
 # Reductions
