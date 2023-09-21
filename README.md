@@ -19,7 +19,12 @@ except their wires can have values in an arbitrary semiring, not just `{0, 1}`.
 
 Here's an example of a polynomial circuit over the semiring `Z_32`:
 
-    TODO: image
+    x₀ ───────────┐   ┌───┐
+                  └───┤   │
+                      │ * ├──── y₀
+          ┌───┐   ┌───┤   │
+    x₁ ───┤ - ├───┘   └───┘
+          └───┘
 
 Think of this circuit as computing the expression `y₀ = x₀ * (-x₁)`.
 The "dangling wires" on the left are the inputs `x₀` and `x₁`,
@@ -30,7 +35,7 @@ and on the right are the outputs `y₀`.
 Polycirc provides a function `rdiff` to differentiate circuits:
 
     from polycirc import ir, rdiff
-    c = ir.dot(2)
+    c = ir.dot(2) # example circuit - dot product of two 2-dimensional vectors
     rc = rdiff(c)
 
 See [./examples/iris.py](./examples/iris.py) for an example of using `rdiff` for
@@ -49,18 +54,26 @@ Basic circuits in the IR can be combined by stacking:
 
     f = ir.identity(1) @ ir.negate(1)
     
-Pictorially, `f` is the circuit below:
+Think of `f` visually like this:
 
-    TODO
+    x₀ ─────────── y₀
+          ┌───┐   
+    x₁ ───┤ - ├─── y₁
+          └───┘
 
 We can plug the outputs of `f` into another circuit using the *composition*
 operation `>>`:
 
     c = f >> ir.mul(1)
 
-which is pictured below:
+which looks like this:
 
-    TODO
+    x₀ ───────────┐   ┌───┐
+                  └───┤   │
+                      │ * ├──── y₀
+          ┌───┐   ┌───┤   │
+    x₁ ───┤ - ├───┘   └───┘
+          └───┘
 
 We can print this program as Python code:
 
