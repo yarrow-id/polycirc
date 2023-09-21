@@ -89,11 +89,13 @@ def multiply_negate(x0, x1):
     return [x3]
 ```
 
-# Iris example
+# Iris demo
 
-To demonstrate differentiability of the IR, see `./examples.iris.py`: a demo
-which trains a simple linear model on the
-[iris dataset](https://archive.ics.uci.edu/dataset/53/iris).
+See the included [iris example](./examples/iris.py) which uses differentiability
+of the IR to train a simple linear model
+for the [iris dataset](https://archive.ics.uci.edu/dataset/53/iris).
+Both *training and inference* of this model happens with polynomial circuits, so
+`yarrow-polycirc` can be used for **on-chain training** of models.
 
 First, install the example dependencies
 
