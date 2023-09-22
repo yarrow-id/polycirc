@@ -107,7 +107,7 @@ Download the Iris dataset
 
 Run the example:
 
-    python -m examples.iris
+    python -m examples.iris train
 
 You should see something like this:
 
@@ -115,6 +115,18 @@ You should see something like this:
     final parameters [-118, 912, -884, 408, -20, -189, 68, 28, -1407, -641, 1407, 2336]
     predicting...
     accuracy: 96.0
+
+You can also print the iris model circuits as python code:
+
+    > python -m examples.iris print
+    def predict(x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x17, x22, x27):
+        x13 = x12
+        x14 = x12
+        x18 = x17
+
+        ⋮
+        <snipped>
+
 
 # Adding a backend
 

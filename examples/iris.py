@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 
+import polycirc
 from polycirc import compile_circuit, rdiff, ir, optic, learner
 from polycirc.learner import make_learner
 
@@ -82,12 +83,31 @@ def build_model():
 
 def main():
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('--iris-data', default='data/iris.csv')
+    subparsers = parser.add_subparsers(dest="command", required=True, help="Available commands")
+
+    # Subparser for the 'train' command
+    train_parser = subparsers.add_parser("train", help="train model")
+    train_parser.add_argument('--iris-data', default='data/iris.csv')
+
+    # Subparser for the 'print' command
+    print_parser = subparsers.add_parser("print", help="print model circuit as python")
+
     args = parser.parse_args()
 
+    match args.command:
+        case "train":
+            return train(args.iris_data)
+        case "print":
+            # Print the forward and step circuits of the model as python functions
+            fwd, rev = build_model()
+            print(polycirc.ast.diagram_to_ast(fwd, 'predict'))
+            print(polycirc.ast.diagram_to_ast(rev, 'step'))
+
+
+def train(iris_data):
     # Load data from CSV
     print("loading data...")
-    x, y = load_iris(args.iris_data, scale=ONE)
+    x, y = load_iris(iris_data, scale=ONE)
 
     # initialize params
     p = np.zeros(NPARAM, dtype=int).tolist()
