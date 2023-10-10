@@ -1,5 +1,33 @@
-""" A generic, simplified AST class modeled on python's ast library.
-Each ASTNode's str() method returns the node represented as Python code.
+""" Compile diagrams to abstract syntax trees (AST) and python functions.
+For example:
+
+    >>> import polycirc.ir as ir
+    >>> d = ir.add(1) >> ir.negate(1) # diagram representing -(x + y)
+    >>> a = diagram_to_ast(d, 'fn') # convert the diagram to an AST
+    >>> fn = a.to_function() # compile the AST to a python function
+    >>> fn(1, 2) # run the function
+    [-3]
+
+In more detail:
+
+- :py:func:`diagram_to_ast` converts a ``Diagram`` to an abstract syntax tree whose top
+  level node is a ``FunctionDefinition``.
+- :py:class:`FunctionDefinition` is an AST with:
+    - a name ...
+    - a list of named inputs...
+    - ... outputs
+    - and a list of internal :py:class:`Assignment` statements
+- A :py:class:`FunctionDefinition` ``a`` can be compiled to a callable python
+  function with ``a.to_function()``.
+
+Note that in contrast to a usual AST representation, the classes in this module
+do not support recursion.
+The role normally played by recursion is instead handled by the combinatorial
+structure of Yarrow's ``Diagram`` datastructure, which might be thought of as a
+kind of "flattened" AST.
+To summarise: you shouldn't be using this module to construct programs directly.
+Instead, go through the :py:mod:`polycirc.ir` module!
+
 """
 from typing import List
 from abc import ABC, abstractmethod
@@ -53,6 +81,11 @@ class BinOp(ASTNode):
 # Recursion is not allowed: if you want to have something like (x + (y + z))
 # you need to explicitly create the intermediate variables.
 class Expr(ASTNode):
+    """ Expression nodes evaluate to a single value.
+    Note that Expr is *not* recursive: nested operations
+    like ``x0 = (x1 + x2) + x3``
+    cannot be represented.
+    """
     value: Name | BinOp | UnaryOp | Constant
 
     def __str__(self):
@@ -63,6 +96,9 @@ class Expr(ASTNode):
 
 @dataclass
 class Assignment(ASTNode):
+    """ An Assignment sets a variable's value to an expression.
+    For example ``x₀ = x₁ * 2``
+    """
     lhs: Name
     rhs: Expr
 
@@ -71,6 +107,20 @@ class Assignment(ASTNode):
 
 @dataclass
 class FunctionDefinition(ASTNode):
+    """ The top-level node of an expression tree.
+    This essentially wraps a list of assigments of expressions to variables.
+
+    >>> from polycirc.operation import Add
+    >>> name = 'foo'
+    >>> x0, x1, x2 = [ Name(x) for x in ["x0", "x1", "x2"] ]
+    >>> args = [x0, x1]
+    >>> body = [Assignment(x2, BinOp(x0, Add(), x1))]
+    >>> returns = [x2]
+    >>> print(FunctionDefinition(name, args, body, returns), end='')
+    def foo(x0, x1):
+        x2 = x0 + x1
+        return [x2]
+    """
     # function name
     function_name: Name
     args: List[Name]
@@ -97,10 +147,16 @@ class FunctionDefinition(ASTNode):
 # Converting diagrams to ASTs
 
 def make_name(i: int):
+    """ Turn an integer `i` into the string ``"x{i}"``
+
+    >>> make_name(2)
+    Name(id='x2')
+    """
     return Name(f"x{i}")
 
 # Convert an Operation to a list of Assignment
 def op_to_assignments(op: Operation, args, coargs) -> List[Assignment]:
+    """ Convert an Operation and its source and target hypernodes into a list of Assignment statements """
     arity = op.type[0]
     coarity = op.type[1]
     if len(args) != arity:
@@ -137,7 +193,7 @@ def op_to_assignments(op: Operation, args, coargs) -> List[Assignment]:
             return [Assignment(coargs[0], BinOp(args[0], op, args[1]))]
 
 def diagram_to_ast(d: Diagram, function_name: str) -> FunctionDefinition:
-    # List[SingletonOp]
+    """ Turn a yarrow Diagram into a FunctionDefinition by decomposing it acyclically """
     ops = list(acyclic_decompose_operations(d))
 
     args = [make_name(i) for i in d.s.table]
