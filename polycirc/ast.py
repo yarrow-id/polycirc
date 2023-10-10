@@ -1,5 +1,5 @@
 """ A generic, simplified AST class modeled on python's ast library.
-    Each ASTNode's str() method returns the node represented as Python code.
+Each ASTNode's str() method returns the node represented as Python code.
 """
 from typing import List
 from abc import ABC, abstractmethod
@@ -12,19 +12,21 @@ from polycirc.decompose import acyclic_decompose_operations, SingletonOp
 
 ################################################################################
 
-# Base class of all nodes
 class ASTNode(ABC):
+    """ The base class of AST nodes """
     pass
 
 @dataclass
-class Name:
+class Name(ASTNode):
+    """ A named variable """
     id: str
 
     def __str__(self):
         return self.id
 
 @dataclass
-class UnaryOp:
+class UnaryOp(ASTNode):
+    """ Unary operations (like negation ``-x``) """
     op: Operation
     rhs: Name | Constant
 
@@ -32,7 +34,8 @@ class UnaryOp:
         return f"{self.op} ({self.rhs})"
 
 @dataclass
-class BinOp:
+class BinOp(ASTNode):
+    """ A binary operation """
     lhs: Name | Constant
     op: Operation
     rhs: Name | Constant
@@ -49,7 +52,7 @@ class BinOp:
 # Expressions are either a BinOp or a Constant.
 # Recursion is not allowed: if you want to have something like (x + (y + z))
 # you need to explicitly create the intermediate variables.
-class Expr:
+class Expr(ASTNode):
     value: Name | BinOp | UnaryOp | Constant
 
     def __str__(self):
