@@ -8,3 +8,4 @@ TODO
    :recursive:
 
    polycirc.ast
+   polycirc.operation
