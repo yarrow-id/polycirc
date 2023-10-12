@@ -1,5 +1,4 @@
-""" An :py:class:`Operation` is a primitive circuit from which more complicated
-circuits are built.
+""" The primitive circuits from which arithmetic circuits are built.
 
 Each :py:class:`Operation` can have multiple inputs and outputs.
 For example, if we call the :py:class:`Copy` operation as a function, we can see it repeats its input:

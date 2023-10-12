@@ -20,7 +20,7 @@ Further Reading
 Polycirc is an implementation of the *differentiable polynomial circuits* of
 :cite:t:`polycirc`
 using the hypergraph-based datastructure of
-`Link yarrow-diagrams <https://github.com/yarrow-id/yarrow-diagrams>`_
+`yarrow-diagrams <https://github.com/yarrow-id/diagrams>`_
 which is described in :cite:t:`dpafsd`.
 
 *Differentiability* of polynomial circuits is based the paper :cite:t:`rdc`;

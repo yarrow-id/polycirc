@@ -7,5 +7,7 @@ TODO
    :toctree: _autosummary
    :recursive:
 
+   polycirc.ir
+   polycirc.permutation
    polycirc.ast
    polycirc.operation

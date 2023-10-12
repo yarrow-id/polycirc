@@ -117,6 +117,13 @@ def test_pointwise_add_symbolic(n: int):
     rs = [ x+y for x, y in zip(xs, ys) ]
     assert fun(*xs, *ys) == rs
 
+@given(n=values)
+def test_copy(n: int):
+    d = ir.copy(n)
+    fun = diagram_to_ast(d, 'fun').to_function()
+    xs = [ [f"x{i}"] for i in range(0, n) ]
+    assert fun(*xs) == xs + xs
+
 def test_identity_empty():
     lhs = ir.identity(0)
     rhs = ir.empty

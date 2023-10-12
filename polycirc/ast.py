@@ -19,6 +19,8 @@ In more detail:
     - and a list of internal :py:class:`Assignment` statements
 - A :py:class:`FunctionDefinition` ``a`` can be compiled to a callable python
   function with ``a.to_function()``.
+- :py:func:`diagram_to_function` is a helper function to compile a diagram to a
+  function directly
 
 Note that in contrast to a usual AST representation, the classes in this module
 do not support recursion.
@@ -206,3 +208,7 @@ def diagram_to_ast(d: Diagram, function_name: str) -> FunctionDefinition:
         body=body,
         returns=returns,
     )
+
+def diagram_to_function(d: Diagram, function_name: str = 'fn'):
+    """ Turn a diagram directly into a callable python function. """
+    return diagram_to_ast(d, function_name).to_function()
