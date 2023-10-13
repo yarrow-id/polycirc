@@ -2,7 +2,7 @@ import argparse
 import numpy as np
 
 import polycirc
-from polycirc import compile_circuit, rdiff, ir, optic, learner
+from polycirc import diagram_to_function, rdiff, ir, optic, learner
 from polycirc.learner import make_learner
 
 from examples.util import load_iris, model_accuracy
@@ -115,8 +115,8 @@ def train(iris_data):
     # compile the forward (fwd) and gradient (step) passes of the circuit into
     # python functions.
     predict_circuit, step_circuit = build_model()
-    predict = compile_circuit(predict_circuit)
-    step = compile_circuit(step_circuit)
+    predict = diagram_to_function(predict_circuit)
+    step = diagram_to_function(step_circuit)
 
     N = len(x)
     NUM_ITER = N * 60

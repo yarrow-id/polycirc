@@ -11,3 +11,4 @@ TODO
    polycirc.permutation
    polycirc.ast
    polycirc.operation
+   polycirc.learner

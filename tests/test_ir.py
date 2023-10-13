@@ -7,7 +7,7 @@ from yarrow import Diagram
 
 import polycirc.ir as ir
 from polycirc.ast import diagram_to_ast
-from polycirc import compile_circuit
+from polycirc import diagram_to_function
 
 from tests.generators import MAX_VALUE, values, arrays, blocks, mat_vec
 
@@ -217,25 +217,25 @@ def test_clip(low, high, x):
 @given(x=arrays)
 def test_negate(x):
     n = len(x)
-    f = compile_circuit(ir.negate(n), 'addc')
+    f = diagram_to_function(ir.negate(n), 'addc')
     assert np.all(f(*x) == -np.array(x, int))
 
 @given(c=values, x=arrays)
 def test_addc(c, x):
     n = len(x)
-    f = compile_circuit(ir.addc(c, n), 'addc')
+    f = diagram_to_function(ir.addc(c, n), 'addc')
     assert np.all(f(*x) == np.array(x, int) + c)
 
 @given(c=values, x=arrays)
 def test_shrc(c, x):
     n = len(x)
     c = abs(c)
-    f = compile_circuit(ir.shrc(c, n), 'shrc')
+    f = diagram_to_function(ir.shrc(c, n), 'shrc')
     assert np.all(f(*x) == (np.array(x, int) >> c))
 
 @given(c=values, x=arrays)
 def test_scale(c, x):
     n = len(x)
     c = abs(c) # need positive values only
-    f = compile_circuit(ir.scale(c, n), 'scale')
+    f = diagram_to_function(ir.scale(c, n), 'scale')
     assert np.all(f(*x) == np.array(x, int) * c)

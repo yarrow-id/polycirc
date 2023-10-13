@@ -4,7 +4,7 @@ from hypothesis import given
 from tests.generators import arrays, values, blocks
 from polycirc.learner import gd, mse
 import polycirc.optic as optic
-from polycirc import compile_circuit
+from polycirc import diagram_to_function
 
 @given(bs=blocks(num_blocks=2), lr=values)
 def test_gd(bs, lr):
@@ -15,7 +15,7 @@ def test_gd(bs, lr):
     u = gd(lr)(n)
 
     o = optic.adapt_optic(u)
-    f = compile_circuit(o, 'update')
+    f = diagram_to_function(o, 'update')
 
     np.all(f(*x, *y) == np.concatenate([x, x - lr*y]))
 
@@ -26,6 +26,6 @@ def test_mse(bs):
     x = np.array(x)
 
     o = optic.adapt_optic(d)
-    f = compile_circuit(o, 'displacement')
+    f = diagram_to_function(o, 'displacement')
 
     np.all(f(*x, *y) == np.concatenate([x, x - y]))
