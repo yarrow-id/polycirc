@@ -1,5 +1,7 @@
 # yarrow-polycirc: Differentiable IR for Zero-Knowledge Machine Learning
 
+[![Documentation Status](https://readthedocs.org/projects/yarrow-polycirc/badge/?version=latest)](https://yarrow-polycirc.readthedocs.io/en/latest/?badge=latest)
+
 `yarrow-polycirc` is a a library for representing and *differentiating*
 [polynomial (arithmetic) circuits](https://www.sciencedirect.com/science/article/pii/S2352220823000469).
 
