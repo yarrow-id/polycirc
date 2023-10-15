@@ -24,6 +24,39 @@ A diagram built from these primitives is like a *circuit* whose wires carry
 values in some semiring `S`.
 Note that the set of primitives included is also *functionally complete*.
 For further mathematical details, refer to :cite:t:`polycirc`.
+
+Polycirc currently supports the following primitive operations:
+
++------------+------+---------------------+
+|  Operation | Type |     Function        |
++============+======+=====================+
+|    Add     | 2→1  |   [x₁+x₂]           |
++------------+------+---------------------+
+|   Negate   | 1→1  |    [-x₁]            |
++------------+------+---------------------+
+| Constant(c)| 0→1  |       [c]           |
++------------+------+---------------------+
+|    Copy    | 1→2  |  [x₁, x₁]           |
++------------+------+---------------------+
+|  Discard   | 1→0  |       []            |
++------------+------+---------------------+
+|    Sub     | 2→1  |   [x₁-x₂]           |
++------------+------+---------------------+
+|    Mul     | 2→1  |   [x₁*x₂]           |
++------------+------+---------------------+
+|    Shr     | 2→1  |   [x₁ >> x₂]        |
++------------+------+---------------------+
+|     Eq     | 2→1  |  [int(x₁ == x₂)]    |
++------------+------+---------------------+
+|     Gt     | 2→1  |   [int(x₁ > x₂)]    |
++------------+------+---------------------+
+|    Geq     | 2→1  |  [int(x₁ >= x₂)]    |
++------------+------+---------------------+
+|     Lt     | 2→1  |   [int(x₁ < x₂)]    |
++------------+------+---------------------+
+|    Leq     | 2→1  |  [int(x₁ <= x₂)]    |
++------------+------+---------------------+
+
 """
 
 from dataclasses import dataclass

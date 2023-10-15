@@ -6,11 +6,20 @@ polycirc
 Polycirc is a library for *differentiating* arithmetic circuits
 for **zero-knowledge machine learning**.
 
+Installation
+============
+
+Install with ``pip``:
+
+.. code::
+
+   pip install yarrow-polycirc
+
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   usage
    user_guide
    api_reference
 
