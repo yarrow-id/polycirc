@@ -1,5 +1,5 @@
+from tests.data import ALL_OPERATIONS
 from polycirc.decompose import *
-from tests.operations_list import ALL_OPERATIONS
 
 def test_decompose_singletons():
     for op in ALL_OPERATIONS:

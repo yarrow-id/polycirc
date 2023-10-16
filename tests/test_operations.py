@@ -5,7 +5,7 @@ from hypothesis import strategies as st
 from polycirc.ast import diagram_to_ast
 from polycirc.operation import *
 
-from tests.operations_list import ALL_OPERATIONS
+from tests.data import ALL_OPERATIONS
 
 @pytest.mark.parametrize("op", ALL_OPERATIONS)
 def test_operation_to_diagram(op: Operation):

@@ -1,3 +1,4 @@
+from polycirc import ir
 from polycirc.operation import *
 
 ALL_OPERATIONS = [
@@ -16,4 +17,3 @@ ALL_OPERATIONS = [
     Geq(),
     Leq(),
 ]
-

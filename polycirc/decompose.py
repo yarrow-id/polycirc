@@ -2,7 +2,7 @@ from typing import List, Callable, Any, Iterator
 from dataclasses import dataclass
 
 import numpy as np
-from yarrow import FiniteFunction, IndexedCoproduct, Diagram, Operations
+from yarrow import FiniteFunction, IndexedCoproduct, Diagram, BipartiteMultigraph, Operations
 from yarrow.finite_function import bincount
 from yarrow.decompose.frobenius import frobenius_decomposition
 from yarrow.numpy.layer import layer
@@ -62,3 +62,35 @@ def acyclic_decompose_operations(f: Diagram) -> Iterator[SingletonOp]:
         x_s = ops.s_type.values.table[src_ptr[op]:src_ptr[op+1]]
         x_t = ops.t_type.values.table[tgt_ptr[op]:tgt_ptr[op+1]]
         yield SingletonOp(d.G.xn(op), x_s, x_t)
+
+def singleton_ops_to_diagram(wires: int, sources: List[int], targets: List[int], singletons: List[SingletonOp]) -> Diagram:
+    """ Build a Diagram from a list of operations. """
+    Array = FiniteFunction._Array
+
+    wn = FiniteFunction.terminal(wires)
+    xn = FiniteFunction(None, [ s.op for s in singletons ], dtype='O')
+
+    # NOTE: we concatenate lists first, because np.concatenate will cast to
+    # float if any subarray is empty.
+    wi = FiniteFunction(wires, sum((s.args for s in singletons), []), dtype=int)
+    wo = FiniteFunction(wires, sum((s.coargs for s in singletons), []), dtype=int)
+
+    # number of sources (targets) for each operation
+    num_sources = np.array([ len(s.args) for s in singletons ], dtype=int)
+    num_targets = np.array([ len(s.coargs) for s in singletons ], dtype=int)
+
+    # Ports are always numbered in ascending order 0,1,2,..0,1,2
+    pi = FiniteFunction(None, Array.segmented_arange(num_sources))
+    po = FiniteFunction(None, Array.segmented_arange(num_targets))
+
+    ids = np.arange(0, len(singletons))
+    X = len(singletons)
+    xi = FiniteFunction(X, np.repeat(ids, num_sources))
+    xo = FiniteFunction(X, np.repeat(ids, num_targets))
+
+    G = BipartiteMultigraph(wi, wo, xi, xo, wn, pi, po, xn)
+
+    s = FiniteFunction(wires, sources)
+    t = FiniteFunction(wires, targets)
+    d = Diagram(s, t, G)
+    return d

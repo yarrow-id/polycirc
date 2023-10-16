@@ -3,6 +3,8 @@ import numpy as np
 from hypothesis import given
 from hypothesis import strategies as st
 
+from polycirc import ir
+
 ################################################################################
 # Generators
 
@@ -41,3 +43,29 @@ def mat_vec_gradients(draw):
     M, x = draw(mat_vec(max_dimension=5))
     dy = np.random.randint(0, MAX_VALUE, M.shape[0])
     return M, x, dy
+
+# circuit size for e.g. ir.add
+size = st.integers(min_value=0, max_value=16)
+size_pair = st.tuples(size, size)
+
+# A variety of circuit generators
+SIZED_CIRCUITS = [ir.add, ir.mul, ir.negate, ir.sub, ir.minimum, ir.maximum, ir.dot]
+IR_CIRCUIT = [ size.map(lambda n: f(n)) for f in SIZED_CIRCUITS ] + [
+    st.just(ir.min()),
+    st.just(ir.max()),
+    arrays.map(lambda cs: ir.constant(cs)),
+    st.tuples(size, size).map(lambda x: ir.scale(*x)),
+    st.tuples(size, size).map(lambda x: ir.mat_mul(*x)),
+    st.tuples(size, size, size).map(lambda x: ir.clip(*x)),
+]
+
+@st.composite
+def circuits(draw):
+    return draw(st.one_of(IR_CIRCUIT))
+
+@st.composite
+def circuit_and_inputs(draw):
+    c = draw(circuits())
+    n = len(c.type[0])
+    inputs = draw(st.lists(values, min_size=n, max_size=n))
+    return c, inputs

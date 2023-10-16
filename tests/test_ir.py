@@ -220,6 +220,11 @@ def test_negate(x):
     f = diagram_to_function(ir.negate(n), 'addc')
     assert np.all(f(*x) == -np.array(x, int))
 
+@given(cs=arrays)
+def test_constant(cs):
+    f = diagram_to_function(ir.constant(cs))
+    assert f() == cs
+
 @given(c=values, x=arrays)
 def test_addc(c, x):
     n = len(x)

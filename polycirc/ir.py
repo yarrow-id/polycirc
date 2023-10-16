@@ -1,6 +1,7 @@
 """ Build circuits using the IR """
 import operator
 import functools
+from typing import List
 from yarrow import Diagram, FiniteFunction
 
 from polycirc.permutation import *
@@ -35,6 +36,18 @@ def shr(n: int) -> Diagram:
 def negate(n: int) -> Diagram:
     """ Pointwise negation """
     return repeated(Negate().diagram(), n)
+
+def constant(cs: List[int]) -> Diagram:
+    """ Return a tensoring of constant values.
+
+    >>> from polycirc.ast import diagram_to_function
+    >>> f = diagram_to_function(constant([1, 2, 3]))
+    >>> f()
+    [1, 2, 3]
+    """
+    if len(cs) == 0:
+        return empty
+    return Diagram.tensor_list([ Constant(c).diagram() for c in cs])
 
 # NOTE: we define copy in terms of the more general 'pointwise_fanout' to avoid
 # repeating code.

@@ -12,3 +12,4 @@ TODO
    polycirc.ast
    polycirc.operation
    polycirc.learner
+   polycirc.serialize

@@ -184,7 +184,6 @@ class Copy(LinearOperation):
         return Add().diagram()
 
     def __str__(self):
-        # NOTE: this is not used!
         return "Δ"
 
 class Discard(LinearOperation):
