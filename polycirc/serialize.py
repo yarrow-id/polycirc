@@ -1,19 +1,84 @@
 """ Serialize and deserialize circuits.
 
-This module provides two methods ...
+Serialize a diagram to JSON with :py:func:`diagram_to_json`, and deserialize
+with :py:func:`diagram_from_json`.
 
-You can also turn diagrams into dicts and back:
+>>> diagram_to_json(ir.add(1))
+'{"wires": 3, "sources": [0, 1], "targets": [2], "operations": [{"operation": "+", "sources": [0, 1], "targets": [2]}]}'
+
+You can also "serialize" diagrams to dicts using :py:func:`diagram_to_dict`, and
+deserialize with :py:func:`diagram_from_dict`.
 
 Format
 ------
 
-.. warning::
-
-    TODO
+Circuits are serialized in a graph-like format.
+The top-level object, corresponding to the :py:class:`SerializedDiagram` DTO class, has four fields:
 
 .. code-block::
 
-    TODO
+    { "wires":   <number of wires in the circuit>
+    , "sources": <wires corresponding to the circuit's inputs>
+    , "targets": <wires corresponding to outputs>
+    , "operations": [ <a list of basic operations in the circuit> ]
+    }
+
+Each of the values in the ``"operations"`` list is of the form below, described
+by the :py:class:`SerializedOperation` DTO class.
+
+.. code-block::
+
+    { "operation": <text representation of the operation, or an integer constant>
+    , "sources": <wires corresponding to operation inputs>
+    , "targets": <wires corresponding to operation outputs>
+    }
+
+This represents an operation like :py:class:`polycirc.operation.Add`, along with
+its "inputs" (``sources``) and "outputs" (``targets``).
+For example, an ``add`` operation could be represented like this:
+
+.. code-block::
+
+    { "operation": "+"
+    , "sources": [0, 1]
+    , "targets": [2]
+    }
+
+As a more complex example, let's construct the expression ``(x₀ + x₁) * x₂``.
+Graphically, that looks like this circuit:
+
+.. code-block::
+
+         0 ┌───┐
+    x₀ ────┤   │ 3
+         1 │ + ├─┐
+    x₁ ────┤   │ │ ┌───┐
+           └───┘ └─┤   │  4
+            2      │ * ├──── (x₀ + x₁) * x₂
+    x₂ ────────────┤   │
+                   └───┘
+
+There are 5 wires here, labeled ``[0, 1, 2, 3, 4]``.
+A dict representing this diagram might look like this:
+
+.. code-block::
+
+    { "wires": 5
+    , "sources": [0, 1, 2]
+    , "targets": [4]
+    , "operations": [
+        { "operation": "+"
+        , "sources": [0, 1]
+        , "targets": [3]
+        },
+
+        { "operation": "*"
+        , "sources": [3, 2]
+        , "targets": [4]
+        }]
+    }
+
+
 """
 from typing import List
 from dataclasses import dataclass, asdict, field
