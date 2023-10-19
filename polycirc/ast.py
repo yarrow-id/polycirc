@@ -8,6 +8,11 @@ For example:
     >>> fn(1, 2) # run the function
     [-3]
 
+.. note::
+    This module isn't intended as a way to construct circuits directly.
+    Instead, build diagrams with :py:mod:`polycirc.ir`, and compile them to the
+    AST form with :py:func:`diagram_to_ast`.
+
 In more detail:
 
 - :py:func:`diagram_to_ast` converts a ``Diagram`` to an abstract syntax tree whose top
@@ -23,13 +28,14 @@ In more detail:
   function directly
 
 Note that in contrast to a usual AST representation, the classes in this module
-do not support recursion.
+are not recursive.
 The role normally played by recursion is instead handled by the combinatorial
 structure of Yarrow's ``Diagram`` datastructure, which might be thought of as a
 kind of "flattened" AST.
-To summarise: you shouldn't be using this module to construct programs directly.
-Instead, go through the :py:mod:`polycirc.ir` module!
-
+The AST representation here is correspondingly "flat": a
+:py:class:`FunctionDefinition` is essentially just a list of assignment
+statements of the form ``var = var | constant | binary op | unary op``, and
+operations can only refer to names or constants.
 """
 from typing import List
 from abc import ABC, abstractmethod

@@ -102,8 +102,13 @@ The code above will print ``5``.
 Save / Load
 -----------
 
-.. warning::
-   TODO
+Circuits can be (de)serialized to/from JSON with the :py:func:`diagram_to_json`
+and :py:func:`diagram_from_json` functions.
+There are also two variants of these functions for "serializing" to dicts:
+:py:func:`diagram_to_dict` and :py:func:`diagram_from_dict`
+
+For details on the serialization format, including examples,
+see :ref:`polycirc.serialize`.
 
 Differentiability and Learning
 ------------------------------
@@ -141,3 +146,52 @@ but you can also print a circuit as code:
 Printing an AST gives Python code by default, so to create a backend for another
 language, you will need to write an *AST backend*.
 
+A simple example for the `Leo language <https://developer.aleo.org/leo/language/>`_
+is included in the
+`examples directory
+<https://github.com/yarrow-id/polycirc/blob/master/examples/leo.py>`_.
+Given a number of example circuits, the ``diagrams_to_leo_module`` function
+outputs the source of a Leo module:
+
+.. code-block::
+
+    # two example circuits
+    square = ir.copy(1) >> ir.mul(1)
+    sum_of_squares = (square @ square) >> ir.add(1)
+
+        # compile to Leo code
+    leo_module = diagrams_to_leo_module([
+        (square, 'square'),
+        (sum_of_squares, 'sum_of_squares'),
+    ], 'examples', 'u32')
+
+    print(leo_module)
+
+The above snippet prints the following Leo code:
+
+.. code-block::
+
+    program examples.aleo {
+        function square(x0: u32) -> u32 {
+            let x1: u32 = x0
+            let x2: u32 = x0
+            let x3: u32 = x1 * x2
+            return x3
+        }
+        function sum_of_squares(x0: u32, x4: u32) -> u32 {
+            let x1: u32 = x0
+            let x2: u32 = x0
+            let x5: u32 = x4
+            let x6: u32 = x4
+            let x3: u32 = x1 * x2
+            let x7: u32 = x5 * x6
+            let x8: u32 = x3 + x7
+            return x8
+        }
+    }
+
+You can run this code from within the project repository using
+
+.. code-block::
+
+        python -m examples.leo
