@@ -144,6 +144,11 @@ generic AST with `polycirc.ast.diagram_to_ast`.
 From this generic AST, you can then convert your arithmetic circuit to your
 target language.
 
+For an in depth example, see the provided
+[Leo backend example](./examples/leo.py)
+and the
+[docs](https://yarrow-polycirc.readthedocs.io/en/latest/user_guide.html#adding-an-ast-backend)
+
 # Running Tests
 
 Install dev dependencies
@@ -153,8 +158,3 @@ Install dev dependencies
 and run tests
 
     pytest
-
-# TODO
-
-- [ ] Docs
-- [ ] An AST backend for [Leo](https://developer.aleo.org/leo/language/)
