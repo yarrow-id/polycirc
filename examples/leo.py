@@ -27,14 +27,14 @@ class LeoBackend:
         """ Render an assignment statement as a string in Leo """
         # NOTE: we re-use the default backend to render expressions, since it's
         # the same as python.
-        return f"let {str(a.lhs)}: {self.semiring} = {str(a.rhs)}"
+        return f"let {str(a.lhs)}: {self.semiring} = {str(a.rhs)};"
 
     def function_definition(self, f: ast.FunctionDefinition) -> str:
         indent = " "*4
         args_list = ", ".join(str(a) + f": {self.semiring}" for a in f.args)
         return_type = leo_tuple([self.semiring]*len(f.returns))
         assignments = "\n".join(indent + self.assignment(a) for a in f.body)
-        returns = indent + "return " + leo_tuple([str(x) for x in f.returns])
+        returns = indent + "return " + leo_tuple([str(x) for x in f.returns]) + ";"
 
         return LEO_FUNCTION_FORMAT.format(
             function_name = f.function_name,
@@ -49,6 +49,10 @@ def diagram_to_leo(d: Diagram, function_name: str, semiring: str) -> str:
     return LeoBackend(semiring).function_definition(f)
 
 LEO_MODULE_FORMAT = """program {module_name}.aleo {{
+    // dummy transition so module can be imported
+    transition id(a: u32) -> u32 {{
+        return a;
+    }}
 {body}
 }}"""
 
@@ -65,11 +69,11 @@ def diagrams_to_leo_module(ds: List[Tuple[Diagram, str]], module_name: str, semi
 
 if __name__ == "__main__":
     # two example circuits
-    square = ir.copy(1) >> ir.mul(1)
-    sum_of_squares = (square @ square) >> ir.add(1)
+    squared = ir.copy(1) >> ir.mul(1)
+    sum_of_squares = (squared @ squared) >> ir.add(1)
 
     leo_module = diagrams_to_leo_module([
-        (square, 'square'),
+        (squared, 'squared'),
         (sum_of_squares, 'sum_of_squares'),
     ], 'examples', 'u32')
 
